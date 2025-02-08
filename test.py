@@ -7,22 +7,24 @@ from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from elevenlabs import play
 
-load_dotenv()
-client = ElevenLabs()
+load_dotenv("ElevenLabs.env")
+auth_token=os.environ.get("ElevenLabs_api")
+clientElevenLabs = ElevenLabs(api_key=auth_token)
 
-audio = client.text_to_speech.convert(
+audio = clientElevenLabs.text_to_speech.convert(
     text="The first move is what sets everything in motion.",
     voice_id="JBFqnCBsd6RMkjVDRZzb",
     model_id="eleven_multilingual_v2",
-    output_format="mp3_44100_128",
-)
+    output_format="mp3_44100_128",)
 
 play(audio)
 
+# response = clientElevenLabs.voices.get_all()
+# print(response.voices)
 
 load_dotenv("LumaAi.env")
 auth_token=os.environ.get("LumaAI_api")
-client = LumaAI(auth_token=auth_token)
+clientLumaAI = LumaAI(auth_token=auth_token)
 
 
 # generation = client.generations.image.create(
