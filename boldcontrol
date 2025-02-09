@@ -1,0 +1,88 @@
+import mido
+
+# List available MIDI input ports
+available_ports = mido.get_input_names()
+print("Available MIDI Ports:", available_ports)
+
+# Choose MIDI port
+midi_port_name = "Launch Control XL"  # Modify if needed
+
+# Initialize movement tracking
+start_prompt = False
+actionDict = {"right": -1, "left": -1, "up": -1, "down": -1}
+orderDict = {"right": -1, "left": -1, "up": -1, "down": -1}
+order = 1
+
+
+# Convert movement data into a text description
+def generate_text_instructions(actions, order):
+    # Filter out actions that are -1 (not used)
+    valid_actions = {k: v for k, v in actions.items() if v != -1}
+    valid_order = {k: v for k, v in order.items() if k in valid_actions}
+
+    # Sort movements by their order of execution
+    sorted_actions = sorted(valid_actions.keys(), key=lambda x: valid_order[x])
+    descriptions = []
+
+    for action in sorted_actions:
+        intensity = valid_actions[action] / 127  # Normalize (0-127 MIDI range)
+        if intensity < 0.3:
+            level = "slightly"
+        elif intensity < 0.7:
+            level = "moderately"
+        else:
+            level = "strongly"
+
+        # Construct movement description
+        descriptions.append(f"Move {level} {action}")
+
+    # Format text output
+    if descriptions:
+        instruction_text = ". Then, ".join(descriptions) + "."
+        print("\nGenerated Instruction:\n", instruction_text)
+        return instruction_text
+    else:
+        print("\nNo movement detected.")
+        return ""
+
+
+# Start MIDI listening
+with mido.open_input(midi_port_name) as inport:
+    print(f"Listening to MIDI input from: {midi_port_name}")
+
+    for msg in inport:
+        print(msg)  # Print raw MIDI messages
+        if start_prompt:
+            if (msg.type != 'note_on') and (msg.type !='note_off'):  # Ignore note presses
+                key = msg.control
+                if key == 77:  # Left
+                    if actionDict["left"] == -1:
+                        orderDict["left"] = order
+                        order += 1
+                    actionDict["left"] = msg.value
+                elif key == 78:  # Right
+                    if actionDict["right"] == -1:
+                        orderDict["right"] = order
+                        order += 1
+                    actionDict["right"] = msg.value
+                elif key == 79:  # Up
+                    if actionDict["up"] == -1:
+                        orderDict["up"] = order
+                        order += 1
+                    actionDict["up"] = msg.value
+                elif key == 80:  # Down
+                    if actionDict["down"] == -1:
+                        orderDict["down"] = order
+                        order += 1
+                    actionDict["down"] = msg.value
+            elif all(value == -1 for value in actionDict.values()):
+                continue
+            else:
+                start_prompt = False
+                order = 1
+                generate_text_instructions(actionDict, orderDict)
+                actionDict = {key: -1 for key in actionDict}
+                orderDict = {key: -1 for key in orderDict}
+
+        elif (msg.type == 'note_on') or (msg.type == 'note_off'):
+            start_prompt = True
