@@ -1,0 +1,116 @@
+
+import os
+import requests
+import time
+from lumaai import LumaAI
+import cv2
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+luma_auth_token = "USE YOUR OWN TOKEN"
+clientLumaAI = LumaAI(auth_token=luma_auth_token)
+
+def createVideo(prompt,saveAs,image):
+    generation = clientLumaAI.generations.create(
+        prompt=prompt,
+        keyframes={
+          "frame0": {
+            "type": "image",
+            "url": image
+          }
+        }
+    )
+    completed = False
+    while not completed:
+      generation = clientLumaAI.generations.get(id=generation.id)
+      if generation.state == "completed":
+        completed = True
+      elif generation.state == "failed":
+        raise RuntimeError(f"Generation failed: {generation.failure_reason}")
+      print("Dreaming")
+      time.sleep(3)
+
+    video_url = generation.assets.video
+
+    # download the video
+    response = requests.get(video_url, stream=True)
+    with open(f'{saveAs}.mp4', 'wb') as file:
+        file.write(response.content)
+    print(f"File downloaded as {saveAs}.mp4")
+    saveNextImage(f"{saveAs}.mp4",f"{saveAs}Image.jpg")
+    imageRef = uploadToCloud(f"{saveAs}Image.jpg")
+    return imageRef
+
+def saveNextImage(video,name):
+    cap = cv2.VideoCapture(video)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, cap.get(cv2.CAP_PROP_FRAME_COUNT) - 1)
+    ret, frame = cap.read()
+
+    if ret:
+        cv2.imwrite(name, frame)
+        print(f"Last frame saved as: {name}")
+    else:
+        print("Error: Could not read the last frame.")
+
+    cap.release()
+
+def uploadToCloud(image):
+    gauth = GoogleAuth()
+
+    if os.path.exists("mycreds.txt"):
+        gauth.LoadCredentialsFile("mycreds.txt")
+    else:
+        gauth.LocalWebserverAuth()  # This opens a browser for authentication
+        gauth.SaveCredentialsFile("mycreds.txt")  # Save the credentials for future use
+
+    drive = GoogleDrive(gauth)
+
+    file = drive.CreateFile({'title': image})
+    file.SetContentFile(image)
+    file.Upload()
+
+    # Make file public
+    file.InsertPermission({
+        'type': 'anyone',
+        'value': 'anyone',
+        'role': 'reader'
+    })
+
+    # Get direct link
+    file_id = file['id']
+    direct_link = f"https://drive.google.com/uc?export=view&id={file_id}"
+
+    return direct_link
+
+def combineVideos(videoList, combined):
+    if videoList == []:
+        print("⚠️ No videos provided!")
+        return
+
+    cap = cv2.VideoCapture(videoList[0])
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+    cap.release()
+
+    # Create VideoWriter object
+    out = cv2.VideoWriter(combined, fourcc, fps, (width, height))
+
+    def write_frames(video_path):
+        cap = cv2.VideoCapture(video_path)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.resize(frame, (width, height))  # Ensure uniform size
+            out.write(frame)
+        cap.release()
+
+    # Process all videos in the list
+    for video in videoList:
+        write_frames(video)
+
+    # Release resources
+    out.release()
+    cv2.destroyAllWindows()
