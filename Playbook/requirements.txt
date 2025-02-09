@@ -1,5 +1,0 @@
-comfydeploy
-python-dotenv
-python-socketio
-packaging
-boto3
