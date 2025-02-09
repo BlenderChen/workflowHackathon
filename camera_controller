@@ -1,0 +1,109 @@
+import os
+import mido
+from utils import createVideo, combineVideos
+
+available_ports = mido.get_input_names()
+print("Available MIDI Ports:", available_ports)
+
+# Choose MIDI port
+midi_port_name = "Launch Control XL"  # Modify if needed
+
+# Initialize movement tracking
+start_prompt = False
+actionDict = {"right": -1, "left": -1, "up": -1, "down": -1, "zoom": -1}
+orderDict = {"right": -1, "left": -1, "up": -1, "down": -1, "zoom": -1}
+order = 1
+
+
+# Convert movement data into a text description
+def generate_text_instructions(actions, order, dir="demoTrial", image = "PUT YOUR IMAGE"):
+    # Filter out actions that are -1 (not used)
+    valid_actions = {k: v for k, v in actions.items() if v != -1}
+    valid_order = {k: v for k, v in order.items() if k in valid_actions}
+
+    # Sort movements by their order of execution
+    sorted_actions = sorted(valid_actions.keys(), key=lambda x: valid_order[x])
+    descriptions = []
+
+    for action in sorted_actions:
+        intensity = valid_actions[action] / 127  # Normalize (0-127 MIDI range)
+        if action == "zoom":
+            if intensity < 0.5:
+                level = "Camera Pull out"
+            else:
+                level = "Camera Push in"
+            descriptions.append(level)
+        else:
+            if intensity < 0.3:
+                level = "slightly"
+            elif intensity < 0.7:
+                level = "moderately"
+            else:
+                level = "strongly"
+
+            # Construct movement description
+            descriptions.append(f"Move camera {level} {action}")
+    refFrame = image
+    videoNames = []
+    for i, description in enumerate(descriptions):
+        print("\nCurrent Instruction:\n", description)
+        refFrame = createVideo(description,f"{dir}/{i}",refFrame)
+        videoNames.append(f"{dir}/{i}.mp4")
+    combineVideos(videoNames,f"{dir}/demo.mp4")
+
+
+# Start MIDI listening
+i = 0
+with mido.open_input(midi_port_name) as inport:
+    print(f"Listening to MIDI input from: {midi_port_name}")
+
+    for msg in inport:
+        #print(msg)  # Print raw MIDI messages
+        if start_prompt:
+            if (msg.type != 'note_on') and (msg.type !='note_off'):  # Ignore note presses
+                key = msg.control
+                if key == 13:  # Left
+                    print("Zoom")
+                    if actionDict["zoom"] == -1:
+                        orderDict["zoom"] = order
+                        order += 1
+                    actionDict["zoom"] = msg.value
+                elif key == 77:  # Left
+                    print("Left")
+                    if actionDict["left"] == -1:
+                        orderDict["left"] = order
+                        order += 1
+                    actionDict["left"] = msg.value
+                elif key == 78:  # Right
+                    print("Right")
+                    if actionDict["right"] == -1:
+                        orderDict["right"] = order
+                        order += 1
+                    actionDict["right"] = msg.value
+                elif key == 79:  # Up
+                    print("up")
+                    if actionDict["up"] == -1:
+                        orderDict["up"] = order
+                        order += 1
+                    actionDict["up"] = msg.value
+                elif key == 80:  # Down
+                    print("down")
+                    if actionDict["down"] == -1:
+                        orderDict["down"] = order
+                        order += 1
+                    actionDict["down"] = msg.value
+            elif all(value == -1 for value in actionDict.values()):
+                continue
+            else:
+                start_prompt = False
+                print("Stop Recording")
+                order = 1
+                os.mkdir(f"trial{i}")
+                generate_text_instructions(actionDict, orderDict, f"trial{i}")
+                i += 1
+                actionDict = {key: -1 for key in actionDict}
+                orderDict = {key: -1 for key in orderDict}
+
+        elif (msg.type == 'note_on') or (msg.type == 'note_off'):
+            start_prompt = True
+            print("Start Recording")
