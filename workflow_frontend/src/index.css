@@ -1,11 +1,45 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;700&display=swap');
 
+@keyframes gradient-text {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradient-bg {
+  0% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  100% {
+    background-position: 50% 0%;
+  }
+}
+
+:root {
+  font-family: 'Bitter', serif;
+  font-optical-sizing: auto;
+  line-height: 1.6;
+  font-weight: 400;
+  
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(
+    180deg,
+    #1a1b1e 0%,
+    #2d2d2d 50%,
+    #1a1b1e 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-bg 15s ease infinite;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,56 +47,215 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ... (previous CSS remains the same) ... */
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(
+    90deg,
+    #fff 0%,
+    #818cf8 25%,
+    #6366f1 50%,
+    #818cf8 75%,
+    #fff 100%
+  );
+  background-size: 200% auto;
+  animation: gradient-text 3s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+:root {
+  font-family: 'Bitter', serif;
+  font-optical-sizing: auto;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(135deg, #1a1b1e 0%, #2d2d2d 100%);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+input,
+textarea {
+  font-family: 'Bitter', serif;
+  padding: 0.8em 1.2em;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 400px;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #818cf8;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: #818cf8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
+
 a:hover {
-  color: #535bf2;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
+  padding: 2rem;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
 
 button {
-  border-radius: 8px;
+  border-radius: 16px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  padding: 0.8em 1.6em;
+  font-size: 1rem;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: 'Bitter', serif;
+  background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
+  margin: 0.5rem;
 }
+
 button:hover {
-  border-color: #646cff;
+  border-color: #818cf8;
+  background: linear-gradient(135deg, #3d3d3d 0%, #4d4d4d 100%);
+  transform: translateY(-1px);
+  border-radius: 20px;
 }
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 3px solid #818cf8;
+  outline-offset: 2px;
+  border-radius: 20px;
 }
+
+.container {
+  background: linear-gradient(135deg, rgba(45, 45, 45, 0.5) 0%, rgba(61, 61, 61, 0.5) 100%);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 1rem;
+  max-width: 800px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #334155;
+    background: linear-gradient(
+      180deg,
+      #f8fafc 0%,
+      #e2e8f0 50%,
+      #f8fafc 100%
+    );
+    background-size: 200% 200%;
+    animation: gradient-bg 15s ease infinite;
   }
+  
+  input,
+  textarea {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  input:focus,
+  textarea:focus {
+    background: #ffffff;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+  
+  a {
+    background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
   a:hover {
-    color: #747bff;
+    background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
+  
+  h1 {
+    background: linear-gradient(
+      90deg,
+      #1a1b1e 0%,
+      #4f46e5 25%,
+      #6366f1 50%,
+      #4f46e5 75%,
+      #1a1b1e 100%
+    );
+    background-size: 200% auto;
+    animation: gradient-text 3s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
   button {
-    background-color: #f9f9f9;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  }
+  
+  button:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  }
+
+  .container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+    border-color: rgba(0, 0, 0, 0.1);
   }
 }
